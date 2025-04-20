@@ -139,3 +139,30 @@
     (ok item-identifier)
   )
 )
+
+;; Vote on curated content with reputation implications
+(define-public (appraise-item (item-identifier uint) (appraisal int))
+  (let
+    (
+      (previous-appraisal (default-to 0 (get appraisal (map-get? participant-appraisals { participant: tx-sender, item-identifier: item-identifier }))))
+      (target-item (unwrap! (map-get? curated-items { item-identifier: item-identifier }) ERR_NONEXISTENT_ITEM))
+      (appraiser-standing (default-to { metric: 0 } (map-get? participant-credibility { participant: tx-sender })))
+    )
+    (asserts! (item-exists item-identifier) ERR_NONEXISTENT_ITEM)
+    (asserts! (or (is-eq appraisal 1) (is-eq appraisal -1)) ERR_INVALID_APPRAISAL)
+    (map-set participant-appraisals
+      { participant: tx-sender, item-identifier: item-identifier }
+      { appraisal: appraisal }
+    )
+    (map-set curated-items
+      { item-identifier: item-identifier }
+      (merge target-item { appraisals: (+ (get appraisals target-item) (- appraisal previous-appraisal)) })
+    )
+    (map-set participant-credibility
+      { participant: tx-sender }
+      { metric: (+ (get metric appraiser-standing) appraisal) }
+    )
+    (print { type: "appraisal", item-identifier: item-identifier, appraiser: tx-sender, appraisal: appraisal })
+    (ok true)
+  )
+)
