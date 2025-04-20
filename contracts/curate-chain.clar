@@ -98,3 +98,44 @@
     )
   )
 )
+
+;; Filter non-zero values from a list
+(define-private (is-non-zero (n uint))
+  (not (is-eq n u0))
+)
+
+;; ========== Public Content Curation Functions ==========
+
+;; Submit new content for community curation
+(define-public (contribute-item (headline (string-ascii 100)) (hyperlink (string-ascii 200)) (topic (string-ascii 20)))
+  (let
+    (
+      (item-identifier (+ (var-get aggregate-submissions) u1))
+    )
+    (asserts! (and 
+                (>= (len headline) u1)
+                (>= (len hyperlink) MIN_HYPERLINK_LENGTH)
+                (>= (len topic) u1)
+              ) ERR_INVALID_SUBMISSION)
+    (asserts! (> item-identifier (var-get aggregate-submissions)) ERR_OVERFLOW)
+    (asserts! (is-some (index-of (var-get content-topics) topic)) ERR_INVALID_TOPIC)
+    (asserts! (>= (stx-get-balance tx-sender) (var-get submission-charge)) ERR_INADEQUATE_BALANCE)
+    (try! (stx-transfer? (var-get submission-charge) tx-sender PROTOCOL_ADMINISTRATOR))
+    (map-set curated-items
+      { item-identifier: item-identifier }
+      {
+        originator: tx-sender,
+        headline: headline,
+        hyperlink: hyperlink,
+        topic: topic,
+        publication-epoch: block-height,
+        appraisals: 0,
+        gratuities: u0,
+        flags: u0
+      }
+    )
+    (var-set aggregate-submissions item-identifier)
+    (print { type: "new-item", item-identifier: item-identifier, originator: tx-sender })
+    (ok item-identifier)
+  )
+)
