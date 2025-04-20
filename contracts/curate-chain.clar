@@ -26,3 +26,35 @@
 (define-data-var submission-charge uint u10)
 (define-data-var aggregate-submissions uint u0)
 (define-data-var content-topics (list 10 (string-ascii 20)) (list "Technology" "Science" "Art" "Politics" "Sports"))
+
+;; Data Storage Maps
+(define-map curated-items 
+  { item-identifier: uint } 
+  { 
+    originator: principal, 
+    headline: (string-ascii 100), 
+    hyperlink: (string-ascii 200), 
+    topic: (string-ascii 20),
+    publication-epoch: uint, 
+    appraisals: int,
+    gratuities: uint,
+    flags: uint
+  }
+)
+
+(define-map participant-appraisals 
+  { participant: principal, item-identifier: uint } 
+  { appraisal: int }
+)
+
+(define-map participant-credibility
+  { participant: principal }
+  { metric: int }
+)
+
+;; ========== Private Helper Functions ==========
+
+;; Check if an item exists in the curation database
+(define-private (item-exists (item-identifier uint))
+  (is-some (map-get? curated-items { item-identifier: item-identifier }))
+)
