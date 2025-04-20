@@ -166,3 +166,40 @@
     (ok true)
   )
 )
+
+;; Send STX rewards to content creators
+(define-public (reward-originator (item-identifier uint) (gratuity-amount uint))
+  (let
+    (
+      (target-item (unwrap! (map-get? curated-items { item-identifier: item-identifier }) ERR_NONEXISTENT_ITEM))
+    )
+    (asserts! (item-exists item-identifier) ERR_NONEXISTENT_ITEM)
+    (asserts! (>= (stx-get-balance tx-sender) gratuity-amount) ERR_INADEQUATE_BALANCE)
+    ;; Update state before transfer
+    (map-set curated-items
+      { item-identifier: item-identifier }
+      (merge target-item { gratuities: (+ (get gratuities target-item) gratuity-amount) })
+    )
+    ;; Perform transfer last
+    (try! (stx-transfer? gratuity-amount tx-sender (get originator target-item)))
+    (print { type: "reward", item-identifier: item-identifier, from: tx-sender, to: (get originator target-item), amount: gratuity-amount })
+    (ok true)
+  )
+)
+
+;; Report problematic content
+(define-public (flag-item (item-identifier uint))
+  (let
+    (
+      (target-item (unwrap! (map-get? curated-items { item-identifier: item-identifier }) ERR_NONEXISTENT_ITEM))
+    )
+    (asserts! (item-exists item-identifier) ERR_NONEXISTENT_ITEM)
+    (asserts! (not (is-eq (get originator target-item) tx-sender)) ERR_INVALID_FLAG)
+    (map-set curated-items
+      { item-identifier: item-identifier }
+      (merge target-item { flags: (+ (get flags target-item) u1) })
+    )
+    (print { type: "flag", item-identifier: item-identifier, flagger: tx-sender })
+    (ok true)
+  )
+)
