@@ -203,3 +203,30 @@
     (ok true)
   )
 )
+
+;; ========== Read-Only Query Functions ==========
+
+;; Get content details by identifier
+(define-read-only (retrieve-item-details (item-identifier uint))
+  (map-get? curated-items { item-identifier: item-identifier })
+)
+
+;; Get user's vote on a specific content item
+(define-read-only (retrieve-participant-appraisal (participant principal) (item-identifier uint))
+  (get appraisal (map-get? participant-appraisals { participant: participant, item-identifier: item-identifier }))
+)
+
+;; Get total number of submissions in the system
+(define-read-only (retrieve-aggregate-submissions)
+  (var-get aggregate-submissions)
+)
+
+;; Get user reputation score
+(define-read-only (retrieve-participant-credibility (participant principal))
+  (default-to { metric: 0 } (map-get? participant-credibility { participant: participant }))
+)
+
+;; Retrieve list of item IDs
+(define-read-only (get-item-ids (count uint))
+  (filter is-non-zero (enumerate count))
+)
