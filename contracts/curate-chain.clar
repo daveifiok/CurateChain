@@ -52,7 +52,7 @@
   { metric: int }
 )
 
-;; ========== Private Helper Functions ==========
+;; Private Helper Functions
 
 ;; Check if an item exists in the curation database
 (define-private (item-exists (item-identifier uint))
@@ -104,7 +104,7 @@
   (not (is-eq n u0))
 )
 
-;; ========== Public Content Curation Functions ==========
+;; Public Content Curation Functions
 
 ;; Submit new content for community curation
 (define-public (contribute-item (headline (string-ascii 100)) (hyperlink (string-ascii 200)) (topic (string-ascii 20)))
@@ -128,7 +128,7 @@
         headline: headline,
         hyperlink: hyperlink,
         topic: topic,
-        publication-epoch: block-height,
+        publication-epoch: stacks-block-height,
         appraisals: 0,
         gratuities: u0,
         flags: u0
@@ -204,7 +204,7 @@
   )
 )
 
-;; ========== Read-Only Query Functions ==========
+;; Read-Only Query Functions
 
 ;; Get content details by identifier
 (define-read-only (retrieve-item-details (item-identifier uint))
@@ -244,7 +244,7 @@
   )
 )
 
-;; ========== Administrative Functions ==========
+;; Administrative Functions
 
 ;; Adjust the submission fee
 (define-public (adjust-submission-charge (new-charge uint))
